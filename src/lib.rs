@@ -36,7 +36,7 @@ pub fn tuple_to_typestack(attr: TokenStream, item: TokenStream) -> TokenStream {
         .expect("there to be an associated type in the trait def");
 
     // Generates each trait implementation up to the number passed to the macro
-    let tokenstreams_iter = (1..=number)
+    let tokenstreams_iter = (0..=number)
         .map(|x| {
             // construct generics string
             let mut generics_str =
@@ -80,12 +80,9 @@ pub fn tuple_to_typestack(attr: TokenStream, item: TokenStream) -> TokenStream {
         })
         .collect::<Vec<_>>();
 
-    // return original trait def, unit type impl, and all typestack impls
+    // return original trait def and all typestack impls
     quote! {
         #original_trait_def
-        impl #trait_name for () {
-            type #associated_type_name = ();
-        }
         #(#tokenstreams_iter)*
     }
     .into()
