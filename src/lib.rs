@@ -6,6 +6,32 @@ use syn::{
     Generics, ImplItemType, ItemTrait, LitInt, TraitItem, TypeTuple, parse_macro_input, parse_str,
 };
 
+/// Provides blanket trait implementations for any tuple type with a number of values up to and including
+/// the number argument provided. These impl blocks contain an associated type that is the TypeStack
+/// representation of the tuple type.
+///
+/// # Example:
+/// ```
+/// #[tuple_to_typestack(2)]
+/// pub trait SomeTrait {
+///     type Assoc;
+/// }
+/// ```
+/// # Expanded Macro Output:
+/// ```
+/// pub trait SomeTrait {
+///     type Assoc;
+/// }
+/// impl SomeTrait for () {
+///     type Assoc = ();
+/// }
+/// impl<T0> SomeTrait for (T0,) {
+///     type Assoc = (T0, ());
+/// }
+/// impl<T0, T1> SomeTrait for (T0, T1) {
+///     type Assoc = (T1, (T0, ()));
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn tuple_to_typestack(attr: TokenStream, item: TokenStream) -> TokenStream {
     // clone original. since it is fully replaced by the output of this macro
