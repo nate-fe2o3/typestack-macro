@@ -48,7 +48,7 @@ pub fn tuple_to_typestack(attr: TokenStream, item: TokenStream) -> TokenStream {
     let trait_name = ast.ident;
 
     // this assumes that there is only one associated type inside the trait definition. If there
-    // are multiple, the macro will only define the first one.
+    // are none or multiple, the macro will throw a compiler error
     let associated_type_name = ast
         .items
         .iter()
