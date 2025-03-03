@@ -63,37 +63,29 @@ pub fn tuple_to_typestack(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     // Generates each trait implementation up to the number passed to the macro
     let tokenstreams_iter = (0..=number)
-        .map(|x| {
-            // construct generics string
-            let mut generics_str =
-                (0..x).fold(String::from("<"), |acc, y| acc + &format!("T{y}, "));
-            generics_str.push('>');
+        .map(|num_types| {
+            let types = (0..num_types)
+                .map(|e| format!("T{e}, "))
+                .collect::<Vec<_>>();
+            let types_string = types.iter().cloned().collect::<String>();
 
-            //parse into Generics AST node
+            //construct generic string, parse into Generics AST node
+            let generics_str = format!("<{types_string}>");
             let generics: Generics = parse_str(&generics_str).expect("generics to work");
 
-            //construct type signature string from generics string
-            let type_signature_str = generics_str
-                .chars()
-                .map(|c| match c {
-                    '<' => '(',
-                    '>' => ')',
-                    _ => c,
-                })
-                .collect::<String>();
-
-            //parse into TypeTuple AST node
+            //construct type sig string, parse into TypeTuple AST node
+            let type_signature_str = format!("({types_string})");
             let type_signature: TypeTuple =
                 parse_str(&type_signature_str).expect("type sig to work");
 
             //construct associated type string
-            let mut assoc_type_str = (0..x)
+            let mut assoc_type_str = types
+                .iter()
                 .rev()
-                .fold(format!("type {associated_type_name} = "), |acc, y| {
-                    acc + &format!("(T{y}, ")
+                .fold(format!("type {associated_type_name} = "), |acc, t| {
+                    acc + &format!("({t}")
                 });
-            assoc_type_str += &format!("(){};", repeat_n(')', x).collect::<String>());
-
+            assoc_type_str += &format!("(){};", repeat_n(')', num_types).collect::<String>());
             //parse into ImplItemType AST node
             let result_type: ImplItemType = parse_str(&assoc_type_str).expect("assoc type to work");
 
