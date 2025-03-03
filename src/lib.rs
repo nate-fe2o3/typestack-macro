@@ -62,42 +62,39 @@ pub fn tuple_to_typestack(attr: TokenStream, item: TokenStream) -> TokenStream {
         .expect("there to be an associated type in the trait def");
 
     // Generates each trait implementation up to the number passed to the macro
-    let tokenstreams_iter = (0..=number)
-        .map(|num_types| {
-            let types = (0..num_types)
-                .map(|e| format!("T{e}, "))
-                .collect::<Vec<_>>();
-            let types_string = types.iter().cloned().collect::<String>();
+    let tokenstreams_iter = (0..=number).map(|num_types| {
+        let types = (0..num_types)
+            .map(|e| format!("T{e}, "))
+            .collect::<Vec<_>>();
+        let types_string = types.iter().cloned().collect::<String>();
 
-            //construct generic string, parse into Generics AST node
-            let generics_str = format!("<{types_string}>");
-            let generics: Generics = parse_str(&generics_str).expect("generics to work");
+        //construct generic string, parse into Generics AST node
+        let generics_str = format!("<{types_string}>");
+        let generics: Generics = parse_str(&generics_str).expect("generics to work");
 
-            //construct type sig string, parse into TypeTuple AST node
-            let type_signature_str = format!("({types_string})");
-            let type_signature: TypeTuple =
-                parse_str(&type_signature_str).expect("type sig to work");
+        //construct type sig string, parse into TypeTuple AST node
+        let type_signature_str = format!("({types_string})");
+        let type_signature: TypeTuple = parse_str(&type_signature_str).expect("type sig to work");
 
-            //construct associated type string
-            let mut assoc_type_str = types
-                .iter()
-                .rev()
-                .fold(format!("type {associated_type_name} = "), |acc, t| {
-                    acc + &format!("({t}")
-                });
-            assoc_type_str += &format!("(){};", repeat_n(')', num_types).collect::<String>());
+        //construct associated type string
+        let mut assoc_type_str = types
+            .iter()
+            .rev()
+            .fold(format!("type {associated_type_name} = "), |acc, t| {
+                acc + &format!("({t}")
+            });
+        assoc_type_str += &format!("(){};", repeat_n(')', num_types).collect::<String>());
 
-            //parse into ImplItemType AST node
-            let result_type: ImplItemType = parse_str(&assoc_type_str).expect("assoc type to work");
+        //parse into ImplItemType AST node
+        let result_type: ImplItemType = parse_str(&assoc_type_str).expect("assoc type to work");
 
-            // return all nodes as a single formatted proc_macro2::TokenStream
-            quote! {
-                impl #generics #trait_name for #type_signature {
-                    #result_type
-                }
+        // return all nodes as a single formatted proc_macro2::TokenStream
+        quote! {
+            impl #generics #trait_name for #type_signature {
+                #result_type
             }
-        })
-        .collect::<Vec<_>>();
+        }
+    });
 
     // return original trait def and all typestack impls
     quote! {
