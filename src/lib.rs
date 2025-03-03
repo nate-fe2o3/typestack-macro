@@ -86,6 +86,7 @@ pub fn tuple_to_typestack(attr: TokenStream, item: TokenStream) -> TokenStream {
                     acc + &format!("({t}")
                 });
             assoc_type_str += &format!("(){};", repeat_n(')', num_types).collect::<String>());
+
             //parse into ImplItemType AST node
             let result_type: ImplItemType = parse_str(&assoc_type_str).expect("assoc type to work");
 
